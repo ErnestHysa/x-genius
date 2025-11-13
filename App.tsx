@@ -11,7 +11,7 @@ import { XLogoIcon, SettingsIcon, CloseIcon, LogoutIcon } from './components/ico
 const App: React.FC = () => {
   const [xAuth, setXAuth] = useState<XAuth>({ isAuthenticated: false });
   const [openRouterConfig, setOpenRouterConfig] = useState<OpenRouterConfig>({ apiKey: '', modelId: 'openai/gpt-3.5-turbo' });
-  const [generatedContent, setGeneratedContent] = useState<string>('');
+  const [generatedContent, setGeneratedContent] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isPosting, setIsPosting] = useState<boolean>(false);
   const [notification, setNotification] = useState<Notification | null>(null);
@@ -50,24 +50,30 @@ const App: React.FC = () => {
   const showNotification = (message: string, type: 'success' | 'error') => {
     setNotification({ message, type });
   };
+
+  const handleError = (error: unknown, context: string) => {
+    const errorMessage = error instanceof Error ? error.message : String(error) || 'An unknown error occurred.';
+    showNotification(`${context} failed: ${errorMessage}`, 'error');
+    console.error(`${context} Error:`, error);
+  };
   
   const handleLogin = async () => {
     const { error } = await loginWithX();
     if (error) {
-        showNotification(`Login failed: ${error.message}`, 'error');
+      handleError(error, 'Login');
     }
   };
 
   const handleLogout = async () => {
     const { error } = await logoutFromX();
      if (error) {
-        showNotification(`Logout failed: ${error.message}`, 'error');
+      handleError(error, 'Logout');
     } else {
-        showNotification('You have been logged out.', 'success');
+      showNotification('You have been logged out.', 'success');
     }
   };
 
-  const handleGenerate = async (prompt: string) => {
+  const handleGenerate = async (prompt: string, tweetCount: number) => {
     if (!openRouterConfig.apiKey || !openRouterConfig.modelId) {
       showNotification('Please configure OpenRouter API Key and Model ID in settings.', 'error');
       setIsSettingsOpen(true);
@@ -75,14 +81,12 @@ const App: React.FC = () => {
     }
 
     setIsGenerating(true);
-    setGeneratedContent('');
+    setGeneratedContent([]);
     try {
-      const content = await generateContent(prompt, openRouterConfig.modelId, openRouterConfig.apiKey);
+      const content = await generateContent(prompt, openRouterConfig.modelId, openRouterConfig.apiKey, tweetCount);
       setGeneratedContent(content);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-      showNotification(`Generation failed: ${errorMessage}`, 'error');
-      console.error(error);
+      handleError(error, 'Content generation');
     } finally {
       setIsGenerating(false);
     }
@@ -98,11 +102,9 @@ const App: React.FC = () => {
     try {
       const result = await postToX(generatedContent, xAuth.providerToken);
       showNotification(result.message, 'success');
-      setGeneratedContent(''); // Clear content after successful post
+      setGeneratedContent([]); // Clear content after successful post
     } catch (error) {
-      const err = error as { message: string };
-      showNotification(`Post failed: ${err.message}`, 'error');
-      console.error(error);
+      handleError(error, 'Posting thread');
     } finally {
       setIsPosting(false);
     }

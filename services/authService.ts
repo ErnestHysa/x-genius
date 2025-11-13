@@ -3,12 +3,23 @@ import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 /**
  * Initiates the OAuth flow with X (Twitter) via Supabase.
- * Supabase handles the redirection to the X authorization page.
+ * This function gets the OAuth URL and opens it in a new tab
+ * to avoid iframe sandbox restrictions.
  */
-export const loginWithX = () => {
-  return supabase.auth.signInWithOAuth({
+export const loginWithX = async () => {
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'twitter',
+    options: {
+      skipBrowserRedirect: true,
+    }
   });
+
+  if (data.url) {
+    // Open the auth URL in a new tab to bypass iframe sandbox restrictions.
+    window.open(data.url, '_blank', 'noopener,noreferrer');
+  }
+
+  return { error };
 };
 
 /**
