@@ -10,17 +10,26 @@ export const loginWithX = async () => {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'twitter',
     options: {
+      // Explicitly tell Supabase where to send the user back after login.
+      redirectTo: window.location.origin,
       skipBrowserRedirect: true,
     }
   });
 
-  if (data.url) {
-    // Open the auth URL in a new tab to bypass iframe sandbox restrictions.
-    window.open(data.url, '_blank', 'noopener,noreferrer');
+  // If Supabase returns an error OR fails to generate a URL, we must stop.
+  if (error || !data.url) {
+    // Create a more informative error message.
+    const errorMessage = error?.message || 'Supabase failed to generate a login URL. This is often due to a misconfiguration of Redirect URLs in your Supabase project settings.';
+    return { data: null, error: new Error(errorMessage) };
   }
 
-  return { error };
+  // Open the auth URL in a new tab to bypass iframe sandbox restrictions.
+  window.open(data.url, '_blank', 'noopener,noreferrer');
+
+  // Return the original data and a null error on success.
+  return { data, error: null };
 };
+
 
 /**
  * Signs the user out of the application.
