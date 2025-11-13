@@ -2,7 +2,6 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { TwitterApi } from 'https://esm.sh/twitter-api-v2@1.16.2';
 
 // Helper function to create a JSON response
 const createResponse = (data: unknown, status = 200, headers: Record<string, string> = {}) => {
@@ -17,9 +16,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const X_API_ENDPOINT = 'https://api.twitter.com/2/tweets';
+
 serve(async (req: Request) => {
-  // This is needed if you're deploying functions from a browser
-  // and running them locally.
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -27,7 +26,6 @@ serve(async (req: Request) => {
   try {
     // 1. Create a Supabase client with the user's auth token
     const supabaseClient = createClient(
-      // Use globalThis to access Deno global object to resolve "Cannot find name 'Deno'" error.
       (globalThis as any).Deno.env.get('SUPABASE_URL') ?? '',
       (globalThis as any).Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
@@ -46,40 +44,49 @@ serve(async (req: Request) => {
       return createResponse({ error: 'Missing token or valid thread in request body.' }, 400, corsHeaders);
     }
     
-    // 4. Initialize the X API client with the user's OAuth 2.0 token
-    const twitterClient = new TwitterApi(token);
-    
-    // 5. Post the thread
+    // 4. Post the thread using native fetch
     let previousTweetId: string | null = null;
-    
-    // Post the first tweet
-    const firstTweet = thread[0];
-    const { data: firstTweetResult } = await twitterClient.v2.tweet(firstTweet);
-    previousTweetId = firstTweetResult.id;
-    console.log(`User ${user.id} posted first tweet ${previousTweetId}`);
+    let firstTweetId: string | null = null;
 
-    // Post subsequent tweets as replies
-    for (let i = 1; i < thread.length; i++) {
-        const tweetText = thread[i];
-        const { data: replyTweetResult } = await twitterClient.v2.tweet(tweetText, {
-            reply: { in_reply_to_tweet_id: previousTweetId! }
-        });
-        previousTweetId = replyTweetResult.id;
-        console.log(`User ${user.id} posted reply tweet ${previousTweetId}`);
+    for (const tweetText of thread) {
+      const body: { text: string; reply?: { in_reply_to_tweet_id: string } } = { text: tweetText };
+      
+      if (previousTweetId) {
+        body.reply = { in_reply_to_tweet_id: previousTweetId };
+      }
+
+      const response = await fetch(X_API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('X API Error:', result);
+        const errorMessage = result.detail || 'Failed to post tweet.';
+        throw new Error(`X API Error: ${errorMessage}`);
+      }
+      
+      previousTweetId = result.data.id;
+      if (!firstTweetId) {
+        firstTweetId = result.data.id;
+      }
+       console.log(`User ${user.id} posted tweet ${previousTweetId}`);
     }
     
-    // 6. Return a success response
+    // 5. Return a success response
     return createResponse({ 
       message: 'Successfully posted thread to X!',
-      firstTweetId: firstTweetResult.id 
+      firstTweetId: firstTweetId 
     }, 200, corsHeaders);
 
   } catch (error: any) {
-    console.error('Error in Edge Function:', error);
-    // Check if it's a Twitter API error for a more specific message
-    if (error.data && error.data.detail) {
-      return createResponse({ error: `X API Error: ${error.data.detail}` }, 500, corsHeaders);
-    }
-    return createResponse({ error: 'An unexpected error occurred.' }, 500, corsHeaders);
+    console.error('Error in Edge Function:', error.message);
+    return createResponse({ error: error.message || 'An unexpected error occurred.' }, 500, corsHeaders);
   }
 });
