@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import type { OpenRouterConfig } from '../types';
 import { EyeIcon, EyeOffIcon, InfoIcon } from './icons';
@@ -6,6 +5,8 @@ import { EyeIcon, EyeOffIcon, InfoIcon } from './icons';
 interface SettingsPanelProps {
   openRouterConfig: OpenRouterConfig;
   setOpenRouterConfig: React.Dispatch<React.SetStateAction<OpenRouterConfig>>;
+  onViewTos: () => void;
+  onViewPolicy: () => void;
 }
 
 const InputField: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; isSecret?: boolean; placeholder?: string }> = ({ label, value, onChange, isSecret = false, placeholder }) => {
@@ -39,7 +40,7 @@ const InputField: React.FC<{ label: string; value: string; onChange: (e: React.C
 };
 
 
-export const SettingsPanel: React.FC<SettingsPanelProps> = ({ openRouterConfig, setOpenRouterConfig }) => {
+export const SettingsPanel: React.FC<SettingsPanelProps> = ({ openRouterConfig, setOpenRouterConfig, onViewTos, onViewPolicy }) => {
   return (
     <div className="space-y-8">
         <div className="bg-yellow-900/30 border border-yellow-700 text-yellow-300 text-sm rounded-lg p-4 flex gap-3">
@@ -65,6 +66,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ openRouterConfig, 
                 onChange={(e) => setOpenRouterConfig(prev => ({...prev, modelId: e.target.value}))}
                 placeholder="e.g., openai/gpt-3.5-turbo"
             />
+        </div>
+        
+        <div className="border-t border-slate-700 pt-6">
+            <h3 className="text-lg font-semibold text-sky-400 mb-4">About & Legal</h3>
+            <div className="flex flex-col items-start space-y-3">
+              <button onClick={onViewTos} className="text-slate-300 hover:text-sky-400 transition-colors text-sm">Terms of Service</button>
+              <button onClick={onViewPolicy} className="text-slate-300 hover:text-sky-400 transition-colors text-sm">Privacy Policy</button>
+            </div>
         </div>
     </div>
   );

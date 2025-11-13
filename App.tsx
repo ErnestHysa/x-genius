@@ -7,6 +7,9 @@ import { generateContent } from './services/openRouterService';
 import { postToX } from './services/xService';
 import { loginWithX, logoutFromX, onAuthStateChange } from './services/authService';
 import { XLogoIcon, SettingsIcon, CloseIcon, LogoutIcon } from './components/icons';
+import { LegalModal } from './components/LegalModal';
+import { TermsOfService } from './components/TermsOfService';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
 
 const App: React.FC = () => {
   const [xAuth, setXAuth] = useState<XAuth>({ isAuthenticated: false });
@@ -16,6 +19,7 @@ const App: React.FC = () => {
   const [isPosting, setIsPosting] = useState<boolean>(false);
   const [notification, setNotification] = useState<Notification | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [viewingLegalDoc, setViewingLegalDoc] = useState<'tos' | 'policy' | null>(null);
 
   useEffect(() => {
     const { data: authListener } = onAuthStateChange((_event, session) => {
@@ -165,11 +169,23 @@ const App: React.FC = () => {
                     <SettingsPanel
                         openRouterConfig={openRouterConfig}
                         setOpenRouterConfig={setOpenRouterConfig}
+                        onViewTos={() => setViewingLegalDoc('tos')}
+                        onViewPolicy={() => setViewingLegalDoc('policy')}
                     />
                 </div>
               </div>
           </div>
       </div>
+
+      {/* Legal Modal */}
+      {viewingLegalDoc && (
+        <LegalModal
+            title={viewingLegalDoc === 'tos' ? 'Terms of Service' : 'Privacy Policy'}
+            onClose={() => setViewingLegalDoc(null)}
+        >
+            {viewingLegalDoc === 'tos' ? <TermsOfService /> : <PrivacyPolicy />}
+        </LegalModal>
+      )}
 
       {/* Notification */}
       {notification && (
