@@ -21,10 +21,25 @@ const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [viewingLegalDoc, setViewingLegalDoc] = useState<'tos' | 'policy' | null>(null);
 
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setNotification({ message, type });
+  };
+  
   useEffect(() => {
     const { data: authListener } = onAuthStateChange((_event, session) => {
       if (session) {
         const { user, provider_token } = session;
+        
+        // Critical Check: A session exists, but the token for posting is missing.
+        // This is a clear sign of a failed token exchange, likely due to bad credentials.
+        if (!provider_token) {
+            setXAuth({ isAuthenticated: false });
+            showNotification('Login succeeded, but failed to get posting permissions. Please double-check your Client ID and Secret in Supabase.', 'error');
+            // Log out the user to clear the corrupted session
+            logoutFromX();
+            return;
+        }
+
         setXAuth({
           isAuthenticated: true,
           providerToken: provider_token,
@@ -50,10 +65,6 @@ const App: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [notification]);
-
-  const showNotification = (message: string, type: 'success' | 'error') => {
-    setNotification({ message, type });
-  };
 
   const handleError = (error: unknown, context: string) => {
     const errorMessage = error instanceof Error ? error.message : String(error) || 'An unknown error occurred.';
