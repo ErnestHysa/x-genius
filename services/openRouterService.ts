@@ -10,7 +10,8 @@ export const generateContent = async (prompt: string, model: string, apiKey: str
     ? `Generate an engaging single X (Twitter) tweet`
     : `Generate an engaging X (Twitter) thread with ${tweetCount} tweets`;
 
-  const systemPrompt = `${threadInstruction} about the following topic. Each tweet must be under 280 characters. Format the entire response as a single, minified JSON array of strings, with no other text or explanation. For example: ["First tweet...","Second tweet...","Third tweet..."]. Topic: "${prompt}"`;
+  // Updated prompt to be more robust and align with `response_format: { type: "json_object" }`
+  const systemPrompt = `${threadInstruction} about the following topic. Each tweet must be under 280 characters. Format the response as a single, minified JSON object with a key "tweets" containing an array of strings. For example: {"tweets":["First tweet...","Second tweet..."]}. Topic: "${prompt}"`;
 
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -62,28 +63,14 @@ export const generateContent = async (prompt: string, model: string, apiKey: str
     throw new Error('The AI returned content that was not valid JSON. Please try generating again.');
   }
 
-  let potentialArray;
+  // Simplified and more robust parsing logic.
+  // The model is now explicitly instructed to return an object like { "tweets": [...] }
+  const tweets = parsedJson.tweets;
 
-  // Case 1: The response is already a valid array.
-  if (Array.isArray(parsedJson)) {
-    potentialArray = parsedJson;
-  } 
-  // Case 2: The response is an object.
-  else if (typeof parsedJson === 'object' && parsedJson !== null) {
-    // Check if it contains a nested array (e.g., { "tweets": [...] })
-    const nestedArray = Object.values(parsedJson).find(value => Array.isArray(value));
-    if (nestedArray) {
-      potentialArray = nestedArray;
-    } else {
-      // If not, assume it's an array-like object (e.g., { "0": "...", "1": "..." })
-      potentialArray = Object.values(parsedJson);
-    }
+  if (!tweets || !Array.isArray(tweets) || !tweets.every(item => typeof item === 'string')) {
+    console.error('Parsed JSON content is not in the expected { "tweets": [...] } format:', parsedJson);
+    throw new Error('AI response was valid JSON, but not in the expected format. Please try again.');
   }
 
-  if (!potentialArray || !Array.isArray(potentialArray) || !potentialArray.every(item => typeof item === 'string')) {
-    console.error('Parsed JSON content is not a valid array of strings:', parsedJson);
-    throw new Error('AI response was valid JSON, but not in the expected format (an array of strings).');
-  }
-
-  return potentialArray;
+  return tweets;
 };

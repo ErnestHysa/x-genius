@@ -3,31 +3,28 @@ import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 /**
  * Initiates the OAuth flow with X (Twitter) via Supabase.
- * This function gets the OAuth URL and opens it in a new tab
- * to avoid iframe sandbox restrictions.
+ * This is the standard implementation for a deployed web application.
  */
 export const loginWithX = async () => {
-  const { data, error } = await supabase.auth.signInWithOAuth({
+  const { error } = await supabase.auth.signInWithOAuth({
     provider: 'twitter',
     options: {
-      // By removing redirectTo, we rely on the main Site URL in the Supabase dashboard.
-      // This simplifies the logic and removes a potential point of failure.
-      skipBrowserRedirect: true,
+      // Explicitly set the redirect URL to the current page's origin.
+      // This URL MUST be added to the Redirect URLs allowlist in your Supabase project.
+      redirectTo: window.location.origin,
     }
   });
 
-  // If Supabase returns an error OR fails to generate a URL, we must stop.
-  if (error || !data.url) {
-    // Create a more informative error message.
-    const errorMessage = error?.message || 'Supabase failed to generate a login URL. This is often due to a misconfiguration of Redirect URLs in your Supabase project settings.';
-    return { data: null, error: new Error(errorMessage) };
+  // If there's an error during the setup, we'll catch it and handle it.
+  if (error) {
+    console.error('Error initiating OAuth login:', error);
+    // Return the error so the UI can handle it.
+    return { data: null, error };
   }
-
-  // Open the auth URL in a new tab to bypass iframe sandbox restrictions.
-  window.open(data.url, '_blank', 'noopener,noreferrer');
-
-  // Return the original data and a null error on success.
-  return { data, error: null };
+  
+  // Supabase will handle the redirect from here.
+  // We return a loading state or similar promise structure if needed by the caller.
+  return { data: { url: null }, error: null };
 };
 
 
