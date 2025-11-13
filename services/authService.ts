@@ -10,8 +10,8 @@ export const loginWithX = async () => {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'twitter',
     options: {
-      // Explicitly tell Supabase where to send the user back after login.
-      redirectTo: window.location.origin,
+      // By removing redirectTo, we rely on the main Site URL in the Supabase dashboard.
+      // This simplifies the logic and removes a potential point of failure.
       skipBrowserRedirect: true,
     }
   });
