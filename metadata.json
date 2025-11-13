@@ -1,0 +1,5 @@
+{
+  "name": "X-Genius",
+  "description": "An AI-powered content generator and poster for X (formerly Twitter). Leverage the OpenRouter API to create specialized content and post it directly to your timeline using the X API.",
+  "requestFramePermissions": []
+}
