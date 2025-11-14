@@ -2,15 +2,34 @@ import React, { useState } from 'react';
 import type { OpenRouterConfig, XApiKeys } from '../types';
 import { EyeIcon, EyeOffIcon, InfoIcon } from './icons';
 
+/**
+ * Props for the SettingsPanel component.
+ */
 interface SettingsPanelProps {
+  /** The current configuration for the OpenRouter API. */
   openRouterConfig: OpenRouterConfig;
+  /** Function to update the OpenRouter API configuration. */
   setOpenRouterConfig: React.Dispatch<React.SetStateAction<OpenRouterConfig>>;
+  /** The current API keys for the X (Twitter) API. */
   xApiKeys: XApiKeys;
+  /** Function to update the X (Twitter) API keys. */
   setXApiKeys: React.Dispatch<React.SetStateAction<XApiKeys>>;
+  /** Function to be called when the "Terms of Service" button is clicked. */
   onViewTos: () => void;
+  /** Function to be called when the "Privacy Policy" button is clicked. */
   onViewPolicy: () => void;
 }
 
+/**
+ * A reusable input field component with support for secret visibility toggling.
+ * @param {object} props - The component props.
+ * @param {string} props.label - The label for the input field.
+ * @param {string} props.value - The current value of the input field.
+ * @param {Function} props.onChange - The function to call when the input value changes.
+ * @param {boolean} [props.isSecret=false] - Whether the input is a secret and should have a visibility toggle.
+ * @param {string} [props.placeholder] - The placeholder text for the input field.
+ * @returns {JSX.Element} The rendered InputField component.
+ */
 const InputField: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; isSecret?: boolean; placeholder?: string }> = ({ label, value, onChange, isSecret = false, placeholder }) => {
   const [isVisible, setIsVisible] = useState(false);
   const inputType = isSecret ? (isVisible ? 'text' : 'password') : 'text';
@@ -41,7 +60,12 @@ const InputField: React.FC<{ label: string; value: string; onChange: (e: React.C
   );
 };
 
-
+/**
+ * A component that provides a user interface for configuring API keys and other settings.
+ * It allows users to input their X (Twitter) and OpenRouter API credentials.
+ * @param {SettingsPanelProps} props - The component props.
+ * @returns {JSX.Element} The rendered SettingsPanel component.
+ */
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ openRouterConfig, setOpenRouterConfig, xApiKeys, setXApiKeys, onViewTos, onViewPolicy }) => {
   return (
     <div className="space-y-8">

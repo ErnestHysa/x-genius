@@ -6,6 +6,7 @@ import { supabase } from './supabaseClient';
  * @param {string[]} thread - The array of tweet strings to post as a thread.
  * @param {string} providerToken - The user's OAuth access token from Supabase.
  * @returns {Promise<{ success: boolean; message: string }>} - The result of the operation.
+ * @throws {Error} Throws an error if the authentication token is missing, the content is empty, or the Edge Function invocation fails.
  */
 export const postToX = async (thread: string[], providerToken: string): Promise<{ success: boolean; message: string }> => {
   if (!providerToken) {
