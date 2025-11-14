@@ -53,4 +53,21 @@ describe('openRouterService', () => {
 
     await expect(generateContent('test prompt', 'test-model', 'test-key', 2)).rejects.toThrow('AI response was valid JSON, but not in the expected format. Please try again.');
   });
+
+  it('calculates max_tokens sufficiently for a single tweet', async () => {
+    const mockResponse = {
+      choices: [{ message: { content: '{"tweets":["a tweet"]}' } }],
+    };
+    (fetch as any).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(mockResponse),
+    });
+
+    await generateContent('test prompt', 'test-model', 'test-key', 1);
+
+    const fetchOptions = (fetch as any).mock.calls[0][1];
+    const body = JSON.parse(fetchOptions.body);
+
+    expect(body.max_tokens).toBeGreaterThanOrEqual(350);
+  });
 });
