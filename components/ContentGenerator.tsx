@@ -8,21 +8,25 @@ interface ContentGeneratorProps {
 
 export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onGenerate, isLoading }) => {
   const [prompt, setPrompt] = useState<string>('');
-  const [tweetCount, setTweetCount] = useState<number>(3);
+  const [tweetCount, setTweetCount] = useState('3');
 
   const handleTweetCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const count = parseInt(e.target.value, 10);
-    if (count > 0 && count <= 10) { // Limit to a reasonable number
-        setTweetCount(count);
+    const value = e.target.value;
+    // We only want to allow numbers to be input
+    if (/^\d*$/.test(value)) {
+      setTweetCount(value);
     }
   };
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (prompt.trim()) {
-      onGenerate(prompt, tweetCount);
+    const numericTweetCount = parseInt(tweetCount, 10);
+    if (prompt.trim() && !isNaN(numericTweetCount) && numericTweetCount > 0 && numericTweetCount <= 10) {
+      onGenerate(prompt, numericTweetCount);
     }
   };
+
+  const isTweetCountValid = /^[1-9]$|^10$/.test(tweetCount);
 
   return (
     <div className="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
@@ -60,7 +64,7 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onGenerate, 
         
         <button
           type="submit"
-          disabled={isLoading || !prompt.trim()}
+          disabled={isLoading || !prompt.trim() || !isTweetCountValid}
           className="mt-4 w-full flex justify-center items-center gap-2 bg-sky-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-500 disabled:bg-slate-600 disabled:cursor-not-allowed transition-colors duration-300"
         >
           {isLoading ? (
