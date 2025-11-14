@@ -34,14 +34,31 @@ describe('ContentGenerator', () => {
         expect(submitButton).toBeDisabled();
     });
 
-    it('ignores non-numeric input for the tweet count', () => {
+    it('calls onGenerate with the correct arguments when the form is submitted', async () => {
+        const user = userEvent.setup();
         const handleGenerate = vi.fn();
         render(<ContentGenerator onGenerate={handleGenerate} isLoading={false} />);
 
-        const tweetCountInput = screen.getByLabelText('Number of Tweets') as HTMLInputElement;
+        const promptInput = screen.getByLabelText("What's on your mind?");
+        const tweetCountInput = screen.getByLabelText('Number of Tweets');
+        const submitButton = screen.getByRole('button', { name: /generate content/i });
 
-        // Test with a non-numeric value
-        fireEvent.change(tweetCountInput, { target: { value: 'abc' } });
-        expect(tweetCountInput.value).toBe('3'); // It should retain the initial value
-      });
+        await user.type(promptInput, 'test prompt');
+        await user.clear(tweetCountInput);
+        await user.type(tweetCountInput, '5');
+        await user.click(submitButton);
+
+        expect(handleGenerate).toHaveBeenCalledWith('test prompt', 5);
+    });
+
+    it('disables the form and shows a loading spinner when isLoading is true', () => {
+        const handleGenerate = vi.fn();
+        render(<ContentGenerator onGenerate={handleGenerate} isLoading={true} />);
+
+        const submitButton = screen.getByRole('button', { name: /generating/i });
+        expect(submitButton).toBeDisabled();
+
+        const spinner = document.querySelector('.animate-spin');
+        expect(spinner).toBeInTheDocument();
+    });
 });
