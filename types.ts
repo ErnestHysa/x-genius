@@ -17,3 +17,10 @@ export interface Notification {
   message: string;
   type: 'success' | 'error';
 }
+
+export interface XApiKeys {
+  apiKey: string;
+  apiSecret: string;
+  accessToken: string;
+  accessTokenSecret: string;
+}

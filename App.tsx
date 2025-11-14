@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import type { OpenRouterConfig, Notification, XAuth } from './types';
+import type { OpenRouterConfig, Notification, XApiKeys } from './types';
 import { SettingsPanel } from './components/SettingsPanel';
 import { ContentGenerator } from './components/ContentGenerator';
 import { GeneratedPost } from './components/GeneratedPost';
 import { generateContent } from './services/openRouterService';
-import { postToX } from './services/xService';
-import { loginWithX, logoutFromX, onAuthStateChange } from './services/authService';
-import { XLogoIcon, SettingsIcon, CloseIcon, LogoutIcon } from './components/icons';
+import { postToX, validateKeys } from './services/twitter-api';
+import { XLogoIcon, SettingsIcon, CloseIcon } from './components/icons';
 import { LegalModal } from './components/LegalModal';
 import { TermsOfService } from './components/TermsOfService';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 
 const App: React.FC = () => {
-  const [xAuth, setXAuth] = useState<XAuth>({ isAuthenticated: false });
+  const [xApiKeys, setXApiKeys] = useState<XApiKeys>({ apiKey: '', apiSecret: '', accessToken: '', accessTokenSecret: '' });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [openRouterConfig, setOpenRouterConfig] = useState<OpenRouterConfig>({ apiKey: '', modelId: 'openai/gpt-3.5-turbo' });
   const [generatedContent, setGeneratedContent] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -26,38 +26,8 @@ const App: React.FC = () => {
   };
   
   useEffect(() => {
-    const { data: authListener } = onAuthStateChange((_event, session) => {
-      if (session) {
-        const { user, provider_token } = session;
-        
-        // Critical Check: A session exists, but the token for posting is missing.
-        // This is a clear sign of a failed token exchange, likely due to bad credentials.
-        if (!provider_token) {
-            setXAuth({ isAuthenticated: false });
-            showNotification('Login succeeded, but failed to get posting permissions. Please double-check your Client ID and Secret in Supabase.', 'error');
-            // Log out the user to clear the corrupted session
-            logoutFromX();
-            return;
-        }
-
-        setXAuth({
-          isAuthenticated: true,
-          providerToken: provider_token,
-          user: {
-            username: user.user_metadata.user_name,
-            name: user.user_metadata.name,
-            avatar: user.user_metadata.avatar_url,
-          },
-        });
-      } else {
-        setXAuth({ isAuthenticated: false });
-      }
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
+    setIsAuthenticated(validateKeys(xApiKeys));
+  }, [xApiKeys]);
 
   useEffect(() => {
     if (notification) {
@@ -72,21 +42,6 @@ const App: React.FC = () => {
     console.error(`${context} Error:`, error);
   };
   
-  const handleLogin = async () => {
-    const { error } = await loginWithX();
-    if (error) {
-      handleError(error, 'Login');
-    }
-  };
-
-  const handleLogout = async () => {
-    const { error } = await logoutFromX();
-     if (error) {
-      handleError(error, 'Logout');
-    } else {
-      showNotification('You have been logged out.', 'success');
-    }
-  };
 
   const handleGenerate = async (prompt: string, tweetCount: number) => {
     if (!openRouterConfig.apiKey || !openRouterConfig.modelId) {
@@ -108,14 +63,15 @@ const App: React.FC = () => {
   };
 
   const handlePost = async () => {
-    if (!xAuth.isAuthenticated || !xAuth.providerToken) {
-      showNotification('Authentication error. Please login again.', 'error');
+    if (!isAuthenticated) {
+      showNotification('Please configure your X API keys in settings.', 'error');
+      setIsSettingsOpen(true);
       return;
     }
     
     setIsPosting(true);
     try {
-      const result = await postToX(generatedContent, xAuth.providerToken);
+      const result = await postToX(generatedContent, xApiKeys);
       showNotification(result.message, 'success');
       setGeneratedContent([]); // Clear content after successful post
     } catch (error) {
@@ -134,15 +90,6 @@ const App: React.FC = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-100">X-Genius</h1>
           </div>
           <div className="flex items-center gap-2">
-            {xAuth.isAuthenticated && xAuth.user ? (
-              <div className="flex items-center gap-3 bg-slate-800/50 px-3 py-1.5 rounded-full border border-slate-700">
-                <img src={xAuth.user.avatar} alt={xAuth.user.name} className="w-6 h-6 rounded-full" />
-                <span className="text-sm font-medium text-slate-300 hidden sm:inline">@{xAuth.user.username}</span>
-                <button onClick={handleLogout} className="p-1 text-slate-400 hover:text-white transition-colors duration-200" aria-label="Logout">
-                  <LogoutIcon className="w-5 h-5" />
-                </button>
-              </div>
-            ) : null}
             <button
               onClick={() => setIsSettingsOpen(!isSettingsOpen)}
               className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-700 transition-colors duration-200"
@@ -160,8 +107,7 @@ const App: React.FC = () => {
             onPost={handlePost}
             isPosting={isPosting}
             isLoading={isGenerating}
-            xAuth={xAuth}
-            onLogin={handleLogin}
+            isAuthenticated={isAuthenticated}
           />
         </main>
       </div>
@@ -180,6 +126,8 @@ const App: React.FC = () => {
                     <SettingsPanel
                         openRouterConfig={openRouterConfig}
                         setOpenRouterConfig={setOpenRouterConfig}
+                        xApiKeys={xApiKeys}
+                        setXApiKeys={setXApiKeys}
                         onViewTos={() => setViewingLegalDoc('tos')}
                         onViewPolicy={() => setViewingLegalDoc('policy')}
                     />
