@@ -10,6 +10,12 @@ import { LegalModal } from './components/LegalModal';
 import { TermsOfService } from './components/TermsOfService';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 
+/**
+ * The main application component.
+ * It manages the application's state, including API keys, generated content, and UI status.
+ * It also orchestrates the interactions between the different components.
+ * @returns {JSX.Element} The rendered App component.
+ */
 const App: React.FC = () => {
   const [xApiKeys, setXApiKeys] = useState<XApiKeys>({ apiKey: '', apiSecret: '', accessToken: '', accessTokenSecret: '' });
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -21,6 +27,11 @@ const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [viewingLegalDoc, setViewingLegalDoc] = useState<'tos' | 'policy' | null>(null);
 
+  /**
+   * Displays a notification to the user.
+   * @param {string} message - The message to display.
+   * @param {'success' | 'error'} type - The type of notification.
+   */
   const showNotification = (message: string, type: 'success' | 'error') => {
     setNotification({ message, type });
   };
@@ -36,13 +47,22 @@ const App: React.FC = () => {
     }
   }, [notification]);
 
+  /**
+   * Handles errors from async operations, displaying a notification to the user.
+   * @param {unknown} error - The error object.
+   * @param {string} context - The context in which the error occurred (e.g., "Content generation").
+   */
   const handleError = (error: unknown, context: string) => {
     const errorMessage = error instanceof Error ? error.message : String(error) || 'An unknown error occurred.';
     showNotification(`${context} failed: ${errorMessage}`, 'error');
     console.error(`${context} Error:`, error);
   };
   
-
+  /**
+   * Handles the content generation process.
+   * @param {string} prompt - The prompt to be used for generating content.
+   * @param {number} tweetCount - The number of tweets to generate.
+   */
   const handleGenerate = async (prompt: string, tweetCount: number) => {
     if (!openRouterConfig.apiKey || !openRouterConfig.modelId) {
       showNotification('Please configure OpenRouter API Key and Model ID in settings.', 'error');
@@ -62,6 +82,9 @@ const App: React.FC = () => {
     }
   };
 
+  /**
+   * Handles the process of posting the generated content to X.
+   */
   const handlePost = async () => {
     if (!isAuthenticated) {
       showNotification('Please configure your X API keys in settings.', 'error');

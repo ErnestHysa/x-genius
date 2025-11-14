@@ -1,14 +1,31 @@
 import React from 'react';
 import { LoadingSpinnerIcon, XLogoIcon } from './icons';
 
+/**
+ * Props for the GeneratedPost component.
+ */
 interface GeneratedPostProps {
+  /** The generated content, an array of tweet strings. */
   content: string[];
+  /** Function to call when the post button is clicked. */
   onPost: () => void;
+  /** Boolean indicating if the content is currently being posted. */
   isPosting: boolean;
+  /** Boolean indicating if new content is being generated. */
   isLoading: boolean;
+  /** Boolean indicating if the user is authenticated to post. */
   isAuthenticated: boolean;
 }
 
+/**
+ * A component that displays a single tweet card within a thread.
+ * It shows the tweet text, character count, and its position in the thread.
+ * @param {object} props - The component props.
+ * @param {string} props.text - The text content of the tweet.
+ * @param {number} props.index - The index of the tweet in the thread.
+ * @param {number} props.total - The total number of tweets in the thread.
+ * @returns {JSX.Element} The rendered TweetCard component.
+ */
 const TweetCard: React.FC<{ text: string; index: number; total: number }> = ({ text, index, total }) => {
   const charCount = text.length;
 
@@ -25,6 +42,12 @@ const TweetCard: React.FC<{ text: string; index: number; total: number }> = ({ t
   );
 };
 
+/**
+ * A component to display the generated thread of tweets.
+ * It handles loading states, empty states, and provides a button to post the thread.
+ * @param {GeneratedPostProps} props - The component props.
+ * @returns {JSX.Element} The rendered GeneratedPost component.
+ */
 export const GeneratedPost: React.FC<GeneratedPostProps> = ({ content, onPost, isPosting, isLoading, isAuthenticated }) => {
   const isContentEmpty = content.length === 0 || content.every(tweet => tweet.trim() === '');
 

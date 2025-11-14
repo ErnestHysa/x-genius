@@ -3,7 +3,13 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// Helper function to create a JSON response
+/**
+ * Helper function to create a standardized JSON response.
+ * @param {unknown} data - The data payload to be stringified.
+ * @param {number} [status=200] - The HTTP status code.
+ * @param {Record<string, string>} [headers={}] - Additional headers to include.
+ * @returns {Response} A Deno `Response` object.
+ */
 const createResponse = (data: unknown, status = 200, headers: Record<string, string> = {}) => {
   return new Response(JSON.stringify(data), {
     status,
@@ -18,7 +24,17 @@ const corsHeaders = {
 
 const X_API_ENDPOINT = 'https://api.twitter.com/2/tweets';
 
+/**
+ * Supabase Edge Function to handle posting a thread to X.
+ * This function is invoked with the user's auth token and the thread content.
+ * It authenticates the user, then iterates through the thread, posting each tweet
+ * in reply to the previous one.
+ *
+ * @param {Request} req - The incoming HTTP request from the client.
+ * @returns {Promise<Response>} A promise that resolves to a JSON response indicating success or failure.
+ */
 serve(async (req: Request) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }

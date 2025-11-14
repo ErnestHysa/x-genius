@@ -4,6 +4,7 @@ import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 /**
  * Initiates the OAuth flow with X (Twitter) via Supabase.
  * This is the standard implementation for a deployed web application.
+ * @returns {Promise<{data: {url: null} | null, error: Error | null}>} A promise that resolves with the authentication data or an error.
  */
 export const loginWithX = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
@@ -30,6 +31,7 @@ export const loginWithX = async () => {
 
 /**
  * Signs the user out of the application.
+ * @returns {Promise<{error: Error | null}>} A promise that resolves when the user is signed out.
  */
 export const logoutFromX = () => {
   return supabase.auth.signOut();
@@ -37,7 +39,8 @@ export const logoutFromX = () => {
 
 /**
  * Listens for changes in the authentication state (e.g., user logs in or out).
- * @param callback - The function to call when the auth state changes.
+ * @param {function(event: AuthChangeEvent, session: Session | null): void} callback - The function to call when the auth state changes.
+ * @returns {{data: {subscription: Subscription}}} An object containing the subscription, which can be used to unsubscribe.
  */
 export const onAuthStateChange = (callback: (event: AuthChangeEvent, session: Session | null) => void) => {
   return supabase.auth.onAuthStateChange(callback);
