@@ -50,7 +50,8 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onGenerate, 
                     Number of Tweets
                 </label>
                 <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     id="tweet-count"
                     value={tweetCount}
                     onChange={handleTweetCountChange}
