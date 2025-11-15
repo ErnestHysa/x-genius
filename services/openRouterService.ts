@@ -24,7 +24,7 @@ export const generateContent = async (prompt: string, model: string, apiKey: str
     body: JSON.stringify({
       model: model,
       messages: [{ role: 'user', content: systemPrompt }],
-      max_tokens: 150 * tweetCount, // Allocate more tokens for longer threads
+      max_tokens: Math.min(150 * tweetCount, 4096), // Allocate more tokens for longer threads
       temperature: 0.7,
       response_format: { type: "json_object" }
     }),

@@ -33,4 +33,15 @@ describe('ContentGenerator', () => {
         fireEvent.change(tweetCountInput, { target: { value: '0' } });
         expect(submitButton).toBeDisabled();
     });
+
+    it('ignores non-numeric input for the tweet count', () => {
+        const handleGenerate = vi.fn();
+        render(<ContentGenerator onGenerate={handleGenerate} isLoading={false} />);
+
+        const tweetCountInput = screen.getByLabelText('Number of Tweets') as HTMLInputElement;
+
+        // Test with a non-numeric value
+        fireEvent.change(tweetCountInput, { target: { value: 'abc' } });
+        expect(tweetCountInput.value).toBe('3'); // It should retain the initial value
+      });
 });
