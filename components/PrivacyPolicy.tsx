@@ -1,5 +1,10 @@
 import React from 'react';
 
+/**
+ * A component that renders the Privacy Policy for the application.
+ * It is a stateless component that contains static legal text.
+ * @returns {JSX.Element} The rendered PrivacyPolicy component.
+ */
 export const PrivacyPolicy: React.FC = () => {
   return (
     <div className="prose prose-invert max-w-none p-6 text-slate-300">

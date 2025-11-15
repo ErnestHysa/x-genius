@@ -1,3 +1,12 @@
+/**
+ * Generates content using the OpenRouter API.
+ * @param {string} prompt - The user's prompt for content generation.
+ * @param {string} model - The ID of the language model to use (e.g., 'openai/gpt-3.5-turbo').
+ * @param {string} apiKey - The user's OpenRouter API key.
+ * @param {number} tweetCount - The number of tweets to generate in the thread.
+ * @returns {Promise<string[]>} A promise that resolves to an array of generated tweet strings.
+ * @throws {Error} Throws an error if the API key or model is not set, or if the API request fails.
+ */
 export const generateContent = async (prompt: string, model: string, apiKey: string, tweetCount: number): Promise<string[]> => {
   if (!apiKey) {
     throw new Error('OpenRouter API key is not set.');
@@ -25,6 +34,7 @@ export const generateContent = async (prompt: string, model: string, apiKey: str
       model: model,
       messages: [{ role: 'user', content: systemPrompt }],
       max_tokens: Math.min(150 * tweetCount, 4096), // Allocate more tokens for longer threads
+      max_tokens: 400 * tweetCount, // Allocate more tokens for longer threads
       temperature: 0.7,
       response_format: { type: "json_object" }
     }),
