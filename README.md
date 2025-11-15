@@ -11,14 +11,15 @@ X-Genius is a web application designed to help you effortlessly create and post 
 -   **AI-Powered Content:** Generate high-quality, contextual tweet threads from a simple prompt.
 -   **Flexible Models:** Use any language model available on OpenRouter by providing your API key and a model ID.
 -   **Direct Posting:** Post the generated thread directly to your X account with a single click.
--   **Secure Authentication:** Uses Supabase for secure OAuth 2.0 authentication with X.
--   **Local Storage:** Your API keys are stored securely in your browser's local storage and are never sent to our servers.
+-   **Local First:** The entire application runs locally, with no need for an online database or backend service.
+-   **Secure Storage:** Your API keys are stored securely in a local `.env` file and a local SQLite database.
 
 ## 🛠️ Tech Stack
 
 -   **Frontend:** [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/)
 -   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
--   **Backend & Auth:** [Supabase](https://supabase.com/) (Auth, Edge Functions)
+-   **Backend:** [Express.js](https://expressjs.com/)
+-   **Database:** [SQLite](https://www.sqlite.org/index.html)
 -   **AI Integration:** [OpenRouter](https://openrouter.ai/)
 
 ## 🚀 Getting Started
@@ -29,7 +30,6 @@ Follow these instructions to set up and run the project locally for development.
 
 -   [Node.js](https://nodejs.org/) (v18 or later)
 -   [npm](https://www.npmjs.com/) (or yarn/pnpm)
--   A [Supabase](https://supabase.com/) account
 -   An [X Developer](https://developer.twitter.com/) account
 
 ### 1. Clone the Repository
@@ -45,39 +45,19 @@ cd x-genius
 npm install
 ```
 
-### 3. Set up Supabase
+### 3. Set up Environment Variables
 
-1.  **Create a Supabase Project:**
-    -   Go to the [Supabase Dashboard](https://app.supabase.com/) and create a new project.
-    -   Save your **Project URL** and **`anon` public key**.
+1.  Create a file named `.env` in the root of the project.
+2.  Add the following environment variables to the `.env` file:
 
-2.  **Configure Supabase Client:**
-    -   Open the file `services/supabaseClient.ts`.
-    -   Replace the placeholder `supabaseUrl` and `supabaseAnonKey` with the values from your project.
+```
+VITE_X_CONSUMER_KEY=your_twitter_consumer_key
+VITE_X_CONSUMER_SECRET=your_twitter_consumer_secret
+```
 
-3.  **Configure X (Twitter) Authentication:**
-    -   In your Supabase project, navigate to **Authentication** > **Providers**.
-    -   Enable **Twitter** as a provider.
-    -   You will need to get a **Client ID** and **Client Secret** from your X Developer App.
-    -   For the **Redirect URL** (also known as Callback URL), add `http://localhost:5173`. The default port for Vite is 5173.
+Replace `your_twitter_consumer_key` and `your_twitter_consumer_secret` with the values from your X Developer App.
 
-### 4. Deploy the Supabase Edge Function
-
-The application uses an Edge Function to post threads to X. You need to deploy it using the [Supabase CLI](https://supabase.com/docs/guides/cli).
-
-1.  **Install and link the Supabase CLI:**
-    ```bash
-    npm install -g supabase
-    supabase login
-    supabase link --project-ref <your-project-id>
-    ```
-
-2.  **Deploy the function:**
-    ```bash
-    supabase functions deploy post-to-x
-    ```
-
-### 5. Run the Application
+### 4. Run the Application
 
 Once the setup is complete, you can run the local development server:
 
@@ -85,11 +65,11 @@ Once the setup is complete, you can run the local development server:
 npm run dev
 ```
 
-The application should now be running at `http://localhost:5173`.
+This will start both the frontend and backend servers. The application should now be running at `http://localhost:3000`.
 
 ## ⚙️ Configuration & Usage
 
-1.  **Log In:** Click the login button to authenticate with your X account via Supabase.
+1.  **Log In:** Click the login button to authenticate with your X account.
 2.  **Configure OpenRouter:**
     -   Open the **Settings** panel.
     -   Enter your **OpenRouter API Key**. You can get one from the [OpenRouter website](https://openrouter.ai/keys).
@@ -104,4 +84,4 @@ The application should now be running at `http://localhost:5173`.
 
 ## ⚠️ Security Note
 
-Your OpenRouter API key is stored only in your browser's local storage. However, for maximum security, it is recommended to use this tool on a private computer and to clear your local storage or log out when you are finished.
+Your OpenRouter API key is stored only in your browser's local storage. Your Twitter API keys are stored in a local `.env` file and your access tokens are stored in a local SQLite database. For maximum security, it is recommended to use this tool on a private computer.

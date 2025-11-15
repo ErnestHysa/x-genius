@@ -1,19 +1,11 @@
-import React, { useState } from 'react';
-import type { OpenRouterConfig, XApiKeys } from '../types';
+import React, { useState, useEffect } from 'react';
+import type { OpenRouterConfig } from '../types';
 import { EyeIcon, EyeOffIcon, InfoIcon } from './icons';
 
 /**
  * Props for the SettingsPanel component.
  */
 interface SettingsPanelProps {
-  /** The current configuration for the OpenRouter API. */
-  openRouterConfig: OpenRouterConfig;
-  /** Function to update the OpenRouter API configuration. */
-  setOpenRouterConfig: React.Dispatch<React.SetStateAction<OpenRouterConfig>>;
-  /** The current API keys for the X (Twitter) API. */
-  xApiKeys: XApiKeys;
-  /** Function to update the X (Twitter) API keys. */
-  setXApiKeys: React.Dispatch<React.SetStateAction<XApiKeys>>;
   /** Function to be called when the "Terms of Service" button is clicked. */
   onViewTos: () => void;
   /** Function to be called when the "Privacy Policy" button is clicked. */
@@ -66,7 +58,17 @@ const InputField: React.FC<{ label: string; value: string; onChange: (e: React.C
  * @param {SettingsPanelProps} props - The component props.
  * @returns {JSX.Element} The rendered SettingsPanel component.
  */
-export const SettingsPanel: React.FC<SettingsPanelProps> = ({ openRouterConfig, setOpenRouterConfig, xApiKeys, setXApiKeys, onViewTos, onViewPolicy }) => {
+export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onViewTos, onViewPolicy }) => {
+    const [openRouterConfig, setOpenRouterConfig] = useState<OpenRouterConfig>({
+        apiKey: localStorage.getItem('openRouterApiKey') || '',
+        modelId: localStorage.getItem('openRouterModelId') || 'openai/gpt-3.5-turbo',
+    });
+
+    useEffect(() => {
+        localStorage.setItem('openRouterApiKey', openRouterConfig.apiKey);
+        localStorage.setItem('openRouterModelId', openRouterConfig.modelId);
+    }, [openRouterConfig]);
+
   return (
     <div className="space-y-8">
         <div className="bg-yellow-900/30 border border-yellow-700 text-yellow-300 text-sm rounded-lg p-4 flex gap-3">
@@ -75,34 +77,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ openRouterConfig, 
                 <h3 className="font-bold">Security Warning</h3>
                 <p>Your API keys are stored in your browser. For maximum security, use this tool on a private computer and close the tab when finished.</p>
             </div>
-        </div>
-
-        <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-sky-400 border-b border-slate-700 pb-2">X (Twitter) API</h3>
-            <InputField
-                label="API Key"
-                value={xApiKeys.apiKey}
-                onChange={(e) => setXApiKeys(prev => ({...prev, apiKey: e.target.value}))}
-                isSecret
-            />
-            <InputField
-                label="API Secret"
-                value={xApiKeys.apiSecret}
-                onChange={(e) => setXApiKeys(prev => ({...prev, apiSecret: e.target.value}))}
-                isSecret
-            />
-            <InputField
-                label="Access Token"
-                value={xApiKeys.accessToken}
-                onChange={(e) => setXApiKeys(prev => ({...prev, accessToken: e.target.value}))}
-                isSecret
-            />
-            <InputField
-                label="Access Token Secret"
-                value={xApiKeys.accessTokenSecret}
-                onChange={(e) => setXApiKeys(prev => ({...prev, accessTokenSecret: e.target.value}))}
-                isSecret
-            />
         </div>
 
         <div className="space-y-6">
@@ -132,3 +106,5 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ openRouterConfig, 
     </div>
   );
 };
+
+export default SettingsPanel;

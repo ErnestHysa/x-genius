@@ -1,99 +1,95 @@
+// components/ContentGenerator.tsx
 import React, { useState } from 'react';
-import { LoadingSpinnerIcon } from './icons';
+import { postToX } from '../services/xService';
+import { getAccessToken } from '../services/authService';
+import { generateContent } from '../services/openRouterService';
 
-/**
- * Props for the ContentGenerator component.
- */
 interface ContentGeneratorProps {
-  /**
-   * Function to be called when the generate button is clicked.
-   * @param prompt - The prompt to be used for generating content.
-   * @param tweetCount - The number of tweets to generate.
-   */
-  onGenerate: (prompt: string, tweetCount: number) => void;
-  /**
-   * Whether the content is currently being generated.
-   */
-  isLoading: boolean;
+    onLogout: () => void;
 }
 
-/**
- * A component for generating content based on a prompt and a number of tweets.
- * @param {ContentGeneratorProps} props - The props for the component.
- * @returns {JSX.Element} - The rendered component.
- */
-export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onGenerate, isLoading }) => {
-  const [prompt, setPrompt] = useState<string>('');
-  const [tweetCount, setTweetCount] = useState('3');
+const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onLogout }) => {
+    const [topic, setTopic] = useState('');
+    const [thread, setThread] = useState<string[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-  const handleTweetCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    // We only want to allow numbers to be input
-    if (/^\d*$/.test(value)) {
-      setTweetCount(value);
-    }
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const numericTweetCount = parseInt(tweetCount, 10);
-    if (prompt.trim() && !isNaN(numericTweetCount) && numericTweetCount > 0 && numericTweetCount <= 10) {
-      onGenerate(prompt, numericTweetCount);
-    }
-  };
+    const handleGenerate = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const apiKey = localStorage.getItem('openRouterApiKey') || '';
+            const model = localStorage.getItem('openRouterModelId') || 'openai/gpt-3.5-turbo';
+            const generatedThread = await generateContent(topic, model, apiKey, 5);
+            setThread(generatedThread);
+        } catch (err) {
+            setError('Failed to generate content. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-  const isTweetCountValid = /^[1-9]$|^10$/.test(tweetCount);
+    const handlePost = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const token = await getAccessToken();
+            if (token) {
+                await postToX(thread, token.accessToken, token.accessSecret);
+            }
+        } catch (err) {
+            setError('Failed to post to X. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-  return (
-    <div className="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className="md:col-span-2">
-                <label htmlFor="prompt-input" className="block text-lg font-medium text-slate-100 mb-3">
-                    What's on your mind?
-                </label>
+    return (
+        <div className="w-full max-w-2xl">
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
                 <textarea
-                id="prompt-input"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="e.g., The future of renewable energy..."
-                className="w-full h-28 bg-slate-900 border border-slate-600 rounded-md p-3 text-slate-200 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition resize-none"
-                disabled={isLoading}
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    placeholder="Enter a topic for your X thread..."
+                    className="w-full p-3 bg-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows={3}
                 />
-            </div>
-            <div>
-                <label htmlFor="tweet-count" className="block text-lg font-medium text-slate-100 mb-3">
-                    Number of Tweets
-                </label>
-                <input
-                    type="text"
-                    inputMode="numeric"
-                    id="tweet-count"
-                    value={tweetCount}
-                    onChange={handleTweetCountChange}
-                    min="1"
-                    max="10"
-                    className="w-full h-28 bg-slate-900 border border-slate-600 rounded-md p-3 text-slate-200 text-center text-4xl font-bold focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition"
+                <button
+                    onClick={handleGenerate}
                     disabled={isLoading}
-                />
+                    className="w-full mt-4 px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:bg-blue-700 transition-colors disabled:bg-gray-500"
+                >
+                    {isLoading ? 'Generating...' : 'Generate Thread'}
+                </button>
             </div>
+
+            {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+
+            {thread.length > 0 && (
+                <div className="mt-8 bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h2 className="text-2xl font-bold mb-4">Generated Thread</h2>
+                    {thread.map((tweet, index) => (
+                        <p key={index} className="mb-4 p-3 bg-gray-700 rounded-lg">
+                            {tweet}
+                        </p>
+                    ))}
+                    <button
+                        onClick={handlePost}
+                        disabled={isLoading}
+                        className="w-full mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 transition-colors disabled:bg-gray-500"
+                    >
+                        {isLoading ? 'Posting...' : 'Post to X'}
+                    </button>
+                </div>
+            )}
+            <button
+                onClick={onLogout}
+                className="w-full mt-4 px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-lg hover:bg-red-700 transition-colors"
+            >
+                Logout
+            </button>
         </div>
-        
-        <button
-          type="submit"
-          disabled={isLoading || !prompt.trim() || !isTweetCountValid}
-          className="mt-4 w-full flex justify-center items-center gap-2 bg-sky-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-500 disabled:bg-slate-600 disabled:cursor-not-allowed transition-colors duration-300"
-        >
-          {isLoading ? (
-            <>
-              <LoadingSpinnerIcon className="w-5 h-5 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            'Generate Content'
-          )}
-        </button>
-      </form>
-    </div>
-  );
+    );
 };
+
+export default ContentGenerator;
