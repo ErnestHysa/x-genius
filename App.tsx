@@ -1,4 +1,7 @@
-// App.tsx
+/**
+ * @file This file serves as the root component for the X-Genius application, managing state, routing, and modal dialogs.
+ * @author Jules
+ */
 
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
@@ -12,6 +15,11 @@ import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import { GearIcon } from './components/icons';
 
+/**
+ * The root component of the application. It manages authentication state,
+ * routing, and the display of various modals like login, settings, and legal info.
+ * @returns {JSX.Element} The rendered application.
+ */
 const App: React.FC = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [showAuthModal, setShowAuthModal] = useState(false);
@@ -20,6 +28,11 @@ const App: React.FC = () => {
     const [showPolicy, setShowPolicy] = useState(false);
 
     useEffect(() => {
+        /**
+         * Checks if the user has a valid access token in storage and updates
+         * the authentication state accordingly.
+         * @returns {Promise<void>}
+         */
         const checkAuth = async () => {
             const token = await getAccessToken();
             if (token) {
@@ -29,24 +42,45 @@ const App: React.FC = () => {
         checkAuth();
     }, []);
 
+    /**
+     * Initiates the login process by displaying the authentication modal.
+     * @returns {void}
+     */
     const handleLogin = () => {
         setShowAuthModal(true);
     };
 
+    /**
+     * Handles the user logout process by calling the authentication service
+     * and updating the application's authentication state.
+     * @returns {Promise<void>}
+     */
     const handleLogout = async () => {
         await logoutFromX();
         setIsAuthenticated(false);
     };
 
+    /**
+     * Opens the settings modal.
+     * @returns {void}
+     */
     const handleSettings = () => {
         setShowSettings(true);
     }
 
+    /**
+     * Closes the settings modal and displays the Terms of Service modal.
+     * @returns {void}
+     */
     const handleTos = () => {
         setShowSettings(false);
         setShowTos(true);
     }
 
+    /**
+     * Closes the settings modal and displays the Privacy Policy modal.
+     * @returns {void}
+     */
     const handlePolicy = () => {
         setShowSettings(false);
         setShowPolicy(true);

@@ -11,12 +11,20 @@ dotenv.config();
 const app = express();
 const port = 3001;
 
+/**
+ * @property {object} tokenStore - In-memory store for OAuth token secrets.
+ * @property {string} oauth_token_secret - The OAuth token secret from Twitter.
+ * @property {string} [access_token] - The access token from Twitter.
+ * @property {string} [access_secret] - The access secret from Twitter.
+ */
 const tokenStore: { [key: string]: { oauth_token_secret: string, access_token?: string, access_secret?: string } } = {};
 
 app.use(cors());
 app.use(bodyParser.json());
 
-// Database initialization
+/**
+ * @property {sqlite.Database} db - The SQLite database connection.
+ */
 let db;
 (async () => {
     db = await open({
@@ -26,11 +34,26 @@ let db;
     await db.exec('CREATE TABLE IF NOT EXISTS tokens (id INTEGER PRIMARY KEY, accessToken TEXT, accessSecret TEXT)');
 })();
 
+/**
+ * The Twitter API client.
+ * @type {TwitterApi}
+ */
 const twitterClient = new TwitterApi({
   appKey: process.env.VITE_X_CONSUMER_KEY || '',
   appSecret: process.env.VITE_X_CONSUMER_SECRET || '',
 });
 
+/**
+ * Route to generate a Twitter authentication link.
+ * @name post/api/auth/request_token
+ * @function
+ * @memberof module:server
+ * @inner
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ * @returns {object} 200 - JSON object with the authentication URL.
+ * @returns {object} 500 - JSON object with an error message.
+ */
 app.post('/api/auth/request_token', async (req, res) => {
   try {
     const authLink = await twitterClient.generateAuthLink('http://localhost:3000/callback');
@@ -49,6 +72,20 @@ app.post('/api/auth/request_token', async (req, res) => {
   }
 });
 
+/**
+ * Route to handle the callback from Twitter after authentication.
+ * @name post/api/auth/callback
+ * @function
+ * @memberof module:server
+ * @inner
+ * @param {object} req - Express request object.
+ * @param {string} req.body.oauth_token - The OAuth token from Twitter.
+ * @param {string} req.body.oauth_verifier - The OAuth verifier from Twitter.
+ * @param {object} res - Express response object.
+ * @returns {object} 200 - JSON object with the access token and secret.
+ * @returns {object} 400 - JSON object with an error message.
+ * @returns {object} 500 - JSON object with an error message.
+ */
 app.post('/api/auth/callback', async (req, res) => {
     const { oauth_token, oauth_verifier } = req.body;
 
@@ -78,6 +115,18 @@ app.post('/api/auth/callback', async (req, res) => {
     }
 });
 
+/**
+ * Route to get the access token from the database.
+ * @name get/api/auth/token
+ * @function
+ * @memberof module:server
+ * @inner
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ * @returns {object} 200 - JSON object with the access token and secret.
+ * @returns {object} 404 - JSON object with an error message.
+ * @returns {object} 500 - JSON object with an error message.
+ */
 app.get('/api/auth/token', async (req, res) => {
     try {
         const token = await db.get('SELECT accessToken, accessSecret FROM tokens WHERE id = ?', 1);
@@ -92,6 +141,17 @@ app.get('/api/auth/token', async (req, res) => {
     }
 });
 
+/**
+ * Route to log the user out by deleting the access token from the database.
+ * @name post/api/auth/logout
+ * @function
+ * @memberof module:server
+ * @inner
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ * @returns {object} 200 - JSON object with a success message.
+ * @returns {object} 500 - JSON object with an error message.
+ */
 app.post('/api/auth/logout', async (req, res) => {
     try {
         await db.run('DELETE FROM tokens WHERE id = ?', 1);
@@ -102,6 +162,21 @@ app.post('/api/auth/logout', async (req, res) => {
     }
 });
 
+/**
+ * Route to post a tweet thread to Twitter.
+ * @name post/api/post_tweet
+ * @function
+ * @memberof module:server
+ * @inner
+ * @param {object} req - Express request object.
+ * @param {string[]} req.body.thread - An array of strings, where each string is a tweet in the thread.
+ * @param {string} req.body.accessToken - The user's Twitter access token.
+ * @param {string} req.body.accessSecret - The user's Twitter access secret.
+ * @param {object} res - Express response object.
+ * @returns {object} 200 - JSON object with a success message.
+ * @returns {object} 400 - JSON object with an error message.
+ * @returns {object} 500 - JSON object with an error message.
+ */
 app.post('/api/post_tweet', async (req, res) => {
     const { thread, accessToken, accessSecret } = req.body;
 
@@ -132,6 +207,14 @@ app.post('/api/post_tweet', async (req, res) => {
 });
 
 
+/**
+ * Starts the Express server.
+ * @function
+ * @memberof module:server
+ * @inner
+ * @param {number} port - The port to listen on.
+ * @param {Function} callback - The function to call once the server is running.
+ */
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });

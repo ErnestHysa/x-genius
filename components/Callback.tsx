@@ -1,8 +1,15 @@
-// components/Callback.tsx
+/**
+ * @file Handles the callback from X (formerly Twitter) after a user has authenticated.
+ * @author Jules
+ */
 
 import React, { useEffect } from 'react';
 import { handleCallback } from '../services/authService';
 
+/**
+ * A component that handles the callback from X (formerly Twitter) after a user has authenticated.
+ * @returns {JSX.Element} A loading message.
+ */
 const Callback: React.FC = () => {
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);

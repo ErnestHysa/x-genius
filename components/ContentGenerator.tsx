@@ -1,13 +1,29 @@
-// components/ContentGenerator.tsx
+/**
+ * @file This file contains the ContentGenerator component, which allows users to generate and post tweet threads.
+ * @author Jules
+ */
 import React, { useState } from 'react';
 import { postToX } from '../services/xService';
 import { getAccessToken } from '../services/authService';
 import { generateContent } from '../services/openRouterService';
 
+/**
+ * The props for the ContentGenerator component.
+ * @interface ContentGeneratorProps
+ */
 interface ContentGeneratorProps {
+    /**
+     * A function to be called when the user logs out.
+     * @type {() => void}
+     */
     onLogout: () => void;
 }
 
+/**
+ * A component that allows users to generate and post tweet threads.
+ * @param {ContentGeneratorProps} props The props for the component.
+ * @returns {JSX.Element} The ContentGenerator component.
+ */
 const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onLogout }) => {
     const [topic, setTopic] = useState('');
     const [thread, setThread] = useState<string[]>([]);
@@ -15,6 +31,10 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onLogout }) => {
     const [isPosting, setIsPosting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    /**
+     * Handles the generation of a tweet thread.
+     * @returns {Promise<void>}
+     */
     const handleGenerate = async () => {
         setIsGenerating(true);
         setError(null);
@@ -30,6 +50,10 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onLogout }) => {
         }
     };
 
+    /**
+     * Handles the posting of a tweet thread to X.
+     * @returns {Promise<void>}
+     */
     const handlePost = async () => {
         setIsPosting(true);
         setError(null);
