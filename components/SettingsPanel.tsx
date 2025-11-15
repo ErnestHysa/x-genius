@@ -1,14 +1,35 @@
 import React, { useState } from 'react';
-import type { OpenRouterConfig } from '../types';
+import type { OpenRouterConfig, XApiKeys } from '../types';
 import { EyeIcon, EyeOffIcon, InfoIcon } from './icons';
 
+/**
+ * Props for the SettingsPanel component.
+ */
 interface SettingsPanelProps {
+  /** The current configuration for the OpenRouter API. */
   openRouterConfig: OpenRouterConfig;
+  /** Function to update the OpenRouter API configuration. */
   setOpenRouterConfig: React.Dispatch<React.SetStateAction<OpenRouterConfig>>;
+  /** The current API keys for the X (Twitter) API. */
+  xApiKeys: XApiKeys;
+  /** Function to update the X (Twitter) API keys. */
+  setXApiKeys: React.Dispatch<React.SetStateAction<XApiKeys>>;
+  /** Function to be called when the "Terms of Service" button is clicked. */
   onViewTos: () => void;
+  /** Function to be called when the "Privacy Policy" button is clicked. */
   onViewPolicy: () => void;
 }
 
+/**
+ * A reusable input field component with support for secret visibility toggling.
+ * @param {object} props - The component props.
+ * @param {string} props.label - The label for the input field.
+ * @param {string} props.value - The current value of the input field.
+ * @param {Function} props.onChange - The function to call when the input value changes.
+ * @param {boolean} [props.isSecret=false] - Whether the input is a secret and should have a visibility toggle.
+ * @param {string} [props.placeholder] - The placeholder text for the input field.
+ * @returns {JSX.Element} The rendered InputField component.
+ */
 const InputField: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; isSecret?: boolean; placeholder?: string }> = ({ label, value, onChange, isSecret = false, placeholder }) => {
   const [isVisible, setIsVisible] = useState(false);
   const inputType = isSecret ? (isVisible ? 'text' : 'password') : 'text';
@@ -39,16 +60,49 @@ const InputField: React.FC<{ label: string; value: string; onChange: (e: React.C
   );
 };
 
-
-export const SettingsPanel: React.FC<SettingsPanelProps> = ({ openRouterConfig, setOpenRouterConfig, onViewTos, onViewPolicy }) => {
+/**
+ * A component that provides a user interface for configuring API keys and other settings.
+ * It allows users to input their X (Twitter) and OpenRouter API credentials.
+ * @param {SettingsPanelProps} props - The component props.
+ * @returns {JSX.Element} The rendered SettingsPanel component.
+ */
+export const SettingsPanel: React.FC<SettingsPanelProps> = ({ openRouterConfig, setOpenRouterConfig, xApiKeys, setXApiKeys, onViewTos, onViewPolicy }) => {
   return (
     <div className="space-y-8">
         <div className="bg-yellow-900/30 border border-yellow-700 text-yellow-300 text-sm rounded-lg p-4 flex gap-3">
             <InfoIcon className="w-5 h-5 flex-shrink-0 mt-0.5"/>
             <div>
                 <h3 className="font-bold">Security Warning</h3>
-                <p>Your OpenRouter API key is stored in your browser. For maximum security, use this tool on a private computer and close the tab when finished.</p>
+                <p>Your API keys are stored in your browser. For maximum security, use this tool on a private computer and close the tab when finished.</p>
             </div>
+        </div>
+
+        <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-sky-400 border-b border-slate-700 pb-2">X (Twitter) API</h3>
+            <InputField
+                label="API Key"
+                value={xApiKeys.apiKey}
+                onChange={(e) => setXApiKeys(prev => ({...prev, apiKey: e.target.value}))}
+                isSecret
+            />
+            <InputField
+                label="API Secret"
+                value={xApiKeys.apiSecret}
+                onChange={(e) => setXApiKeys(prev => ({...prev, apiSecret: e.target.value}))}
+                isSecret
+            />
+            <InputField
+                label="Access Token"
+                value={xApiKeys.accessToken}
+                onChange={(e) => setXApiKeys(prev => ({...prev, accessToken: e.target.value}))}
+                isSecret
+            />
+            <InputField
+                label="Access Token Secret"
+                value={xApiKeys.accessTokenSecret}
+                onChange={(e) => setXApiKeys(prev => ({...prev, accessTokenSecret: e.target.value}))}
+                isSecret
+            />
         </div>
 
         <div className="space-y-6">

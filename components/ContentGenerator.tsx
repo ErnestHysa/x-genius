@@ -1,11 +1,27 @@
 import React, { useState } from 'react';
 import { LoadingSpinnerIcon } from './icons';
 
+/**
+ * Props for the ContentGenerator component.
+ */
 interface ContentGeneratorProps {
+  /**
+   * Function to be called when the generate button is clicked.
+   * @param prompt - The prompt to be used for generating content.
+   * @param tweetCount - The number of tweets to generate.
+   */
   onGenerate: (prompt: string, tweetCount: number) => void;
+  /**
+   * Whether the content is currently being generated.
+   */
   isLoading: boolean;
 }
 
+/**
+ * A component for generating content based on a prompt and a number of tweets.
+ * @param {ContentGeneratorProps} props - The props for the component.
+ * @returns {JSX.Element} - The rendered component.
+ */
 export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onGenerate, isLoading }) => {
   const [prompt, setPrompt] = useState<string>('');
   const [tweetCount, setTweetCount] = useState('3');

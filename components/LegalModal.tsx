@@ -1,12 +1,23 @@
 import React from 'react';
 import { CloseIcon } from './icons';
 
+/**
+ * Props for the LegalModal component.
+ */
 interface LegalModalProps {
+  /** The title to be displayed in the modal header. */
   title: string;
+  /** Function to be called when the modal is closed. */
   onClose: () => void;
+  /** The content to be displayed inside the modal. */
   children: React.ReactNode;
 }
 
+/**
+ * A modal component for displaying legal documents like Terms of Service or Privacy Policy.
+ * @param {LegalModalProps} props - The component props.
+ * @returns {JSX.Element} The rendered LegalModal component.
+ */
 export const LegalModal: React.FC<LegalModalProps> = ({ title, onClose, children }) => {
   return (
     <div className="fixed inset-0 z-40 bg-black/70 flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>

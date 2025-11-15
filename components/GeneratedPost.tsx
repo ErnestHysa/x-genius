@@ -1,16 +1,31 @@
 import React from 'react';
-import type { XAuth } from '../types';
 import { LoadingSpinnerIcon, XLogoIcon } from './icons';
 
+/**
+ * Props for the GeneratedPost component.
+ */
 interface GeneratedPostProps {
+  /** The generated content, an array of tweet strings. */
   content: string[];
+  /** Function to call when the post button is clicked. */
   onPost: () => void;
+  /** Boolean indicating if the content is currently being posted. */
   isPosting: boolean;
+  /** Boolean indicating if new content is being generated. */
   isLoading: boolean;
-  xAuth: XAuth;
-  onLogin: () => void;
+  /** Boolean indicating if the user is authenticated to post. */
+  isAuthenticated: boolean;
 }
 
+/**
+ * A component that displays a single tweet card within a thread.
+ * It shows the tweet text, character count, and its position in the thread.
+ * @param {object} props - The component props.
+ * @param {string} props.text - The text content of the tweet.
+ * @param {number} props.index - The index of the tweet in the thread.
+ * @param {number} props.total - The total number of tweets in the thread.
+ * @returns {JSX.Element} The rendered TweetCard component.
+ */
 const TweetCard: React.FC<{ text: string; index: number; total: number }> = ({ text, index, total }) => {
   const charCount = text.length;
 
@@ -27,7 +42,13 @@ const TweetCard: React.FC<{ text: string; index: number; total: number }> = ({ t
   );
 };
 
-export const GeneratedPost: React.FC<GeneratedPostProps> = ({ content, onPost, isPosting, isLoading, xAuth, onLogin }) => {
+/**
+ * A component to display the generated thread of tweets.
+ * It handles loading states, empty states, and provides a button to post the thread.
+ * @param {GeneratedPostProps} props - The component props.
+ * @returns {JSX.Element} The rendered GeneratedPost component.
+ */
+export const GeneratedPost: React.FC<GeneratedPostProps> = ({ content, onPost, isPosting, isLoading, isAuthenticated }) => {
   const isContentEmpty = content.length === 0 || content.every(tweet => tweet.trim() === '');
 
   if (isLoading) {
@@ -56,33 +77,23 @@ export const GeneratedPost: React.FC<GeneratedPostProps> = ({ content, onPost, i
         ))}
       </div>
       <div className="flex justify-end items-center mt-6">
-        {xAuth.isAuthenticated ? (
-          <button
-            onClick={onPost}
-            disabled={isPosting || isContentEmpty}
-            className="flex items-center gap-2 bg-blue-500 text-white font-bold py-2 px-5 rounded-lg hover:bg-blue-400 disabled:bg-slate-600 disabled:cursor-not-allowed transition-colors duration-300"
-          >
-            {isPosting ? (
-              <>
-                <LoadingSpinnerIcon className="w-5 h-5 animate-spin" />
-                Posting Thread...
-              </>
-            ) : (
-              <>
-                <XLogoIcon className="w-5 h-5"/>
-                Post Thread to X
-              </>
-            )}
-          </button>
-        ) : (
-           <button
-            onClick={onLogin}
-            className="flex items-center gap-2 bg-slate-700 text-white font-bold py-2 px-5 rounded-lg hover:bg-slate-600 transition-colors duration-300"
-           >
-            <XLogoIcon className="w-5 h-5"/>
-            Login with X to Post
-          </button>
-        )}
+        <button
+          onClick={onPost}
+          disabled={isPosting || isContentEmpty || !isAuthenticated}
+          className="flex items-center gap-2 bg-blue-500 text-white font-bold py-2 px-5 rounded-lg hover:bg-blue-400 disabled:bg-slate-600 disabled:cursor-not-allowed transition-colors duration-300"
+        >
+          {isPosting ? (
+            <>
+              <LoadingSpinnerIcon className="w-5 h-5 animate-spin" />
+              Posting Thread...
+            </>
+          ) : (
+            <>
+              <XLogoIcon className="w-5 h-5"/>
+              {isAuthenticated ? 'Post Thread to X' : 'Configure API Keys to Post'}
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
