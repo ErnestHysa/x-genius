@@ -79,4 +79,45 @@ describe('ContentGenerator', () => {
         await user.click(logoutButton);
         expect(onLogout).toHaveBeenCalled();
     });
+
+    it('while generating a new thread, the post button for the old thread should remain enabled', async () => {
+        const user = userEvent.setup();
+        // Mock the implementation to control its resolution
+        let resolveFirstCall: (value: string[]) => void;
+        const promise1 = new Promise<string[]>((resolve) => { resolveFirstCall = resolve; });
+
+        let resolveSecondCall: (value: string[]) => void;
+        const promise2 = new Promise<string[]>((resolve) => { resolveSecondCall = resolve; });
+
+        (openRouterService.generateContent as any)
+            .mockReturnValueOnce(promise1)
+            .mockReturnValueOnce(promise2);
+
+        render(<ContentGenerator onLogout={onLogout} />);
+
+        const generateButton = screen.getByText('Generate Thread');
+        const topicInput = screen.getByPlaceholderText('Enter a topic for your X thread...');
+        await user.type(topicInput, 'test topic');
+
+        // 1. Generate the first thread
+        await user.click(generateButton);
+
+        // Resolve the first promise
+        resolveFirstCall(['First tweet']);
+
+        // Wait for the post button to appear
+        const postButton = await screen.findByText('Post to X');
+        expect(postButton).not.toBeDisabled();
+
+        // 2. Start generating a second thread
+        await user.click(generateButton);
+
+        await screen.findByText('Generating...');
+
+        // 3. Assert that the post button for the old thread is NOT disabled
+        expect(postButton).not.toBeDisabled();
+
+        // Cleanup: resolve the second promise to avoid open handles
+        resolveSecondCall(['Second tweet']);
+    });
 });

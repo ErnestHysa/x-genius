@@ -11,11 +11,12 @@ interface ContentGeneratorProps {
 const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onLogout }) => {
     const [topic, setTopic] = useState('');
     const [thread, setThread] = useState<string[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [isPosting, setIsPosting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleGenerate = async () => {
-        setIsLoading(true);
+        setIsGenerating(true);
         setError(null);
         try {
             const apiKey = localStorage.getItem('openRouterApiKey') || '';
@@ -25,12 +26,12 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onLogout }) => {
         } catch (err) {
             setError('Failed to generate content. Please try again.');
         } finally {
-            setIsLoading(false);
+            setIsGenerating(false);
         }
     };
 
     const handlePost = async () => {
-        setIsLoading(true);
+        setIsPosting(true);
         setError(null);
         try {
             const token = await getAccessToken();
@@ -40,7 +41,7 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onLogout }) => {
         } catch (err) {
             setError('Failed to post to X. Please try again.');
         } finally {
-            setIsLoading(false);
+            setIsPosting(false);
         }
     };
 
@@ -56,10 +57,10 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onLogout }) => {
                 />
                 <button
                     onClick={handleGenerate}
-                    disabled={isLoading}
+                    disabled={isGenerating}
                     className="w-full mt-4 px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:bg-blue-700 transition-colors disabled:bg-gray-500"
                 >
-                    {isLoading ? 'Generating...' : 'Generate Thread'}
+                    {isGenerating ? 'Generating...' : 'Generate Thread'}
                 </button>
             </div>
 
@@ -75,10 +76,10 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onLogout }) => {
                     ))}
                     <button
                         onClick={handlePost}
-                        disabled={isLoading}
+                        disabled={isPosting}
                         className="w-full mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 transition-colors disabled:bg-gray-500"
                     >
-                        {isLoading ? 'Posting...' : 'Post to X'}
+                        {isPosting ? 'Posting...' : 'Post to X'}
                     </button>
                 </div>
             )}
