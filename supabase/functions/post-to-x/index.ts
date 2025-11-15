@@ -2,6 +2,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { OAuthClient } from 'https://deno.land/x/oauth_1_0a@v0.2.2/mod.ts';
 
 /**
  * Helper function to create a standardized JSON response.
@@ -54,13 +55,21 @@ serve(async (req: Request) => {
       return createResponse({ error: 'Authentication failed. Please log in again.' }, 401, corsHeaders);
     }
     
-    // 3. Get the tweet thread and provider token from the request body
-    const { thread, token } = await req.json();
-    if (!token || !Array.isArray(thread) || thread.length === 0) {
-      return createResponse({ error: 'Missing token or valid thread in request body.' }, 400, corsHeaders);
+    // 3. Get the tweet thread and user's X credentials from the request body
+    const { thread, accessToken, accessSecret } = await req.json();
+    if (!accessToken || !accessSecret || !Array.isArray(thread) || thread.length === 0) {
+      return createResponse({ error: 'Missing accessToken, accessSecret, or a valid thread in the request body.' }, 400, corsHeaders);
     }
-    
-    // 4. Post the thread using native fetch
+
+    // 4. Initialize OAuth 1.0a client with app credentials from environment variables
+    const oauthClient = new OAuthClient({
+      consumer: {
+        key: (globalThis as any).Deno.env.get('X_CONSUMER_KEY') ?? '',
+        secret: (globalThis as any).Deno.env.get('X_CONSUMER_SECRET') ?? '',
+      },
+    });
+
+    // 5. Post the thread to X
     let previousTweetId: string | null = null;
     let firstTweetId: string | null = null;
 
@@ -71,10 +80,19 @@ serve(async (req: Request) => {
         body.reply = { in_reply_to_tweet_id: previousTweetId };
       }
 
+      const authHeader = oauthClient.authHeader({
+        method: 'POST',
+        url: X_API_ENDPOINT,
+        token: {
+          key: accessToken,
+          secret: accessSecret,
+        },
+      });
+
       const response = await fetch(X_API_ENDPOINT, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': authHeader,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
@@ -92,10 +110,10 @@ serve(async (req: Request) => {
       if (!firstTweetId) {
         firstTweetId = result.data.id;
       }
-       console.log(`User ${user.id} posted tweet ${previousTweetId}`);
+      console.log(`User ${user.id} posted tweet ${previousTweetId}`);
     }
     
-    // 5. Return a success response
+    // 6. Return a success response
     return createResponse({ 
       message: 'Successfully posted thread to X!',
       firstTweetId: firstTweetId 
