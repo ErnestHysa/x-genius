@@ -85,3 +85,23 @@ This will start both the frontend and backend servers. The application should no
 ## ⚠️ Security Note
 
 Your OpenRouter API key is stored only in your browser's local storage. Your Twitter API keys are stored in a local `.env` file and your access tokens are stored in a local SQLite database. For maximum security, it is recommended to use this tool on a private computer.
+
+## 📁 Project Structure
+
+### Services
+
+-   `authService.ts`: Manages authentication with X (formerly Twitter).
+-   `openRouterService.ts`: Generates content using the OpenRouter API.
+-   `xService.ts`: Manages interactions with the X API.
+
+### Components
+
+-   `AuthModal.tsx`: Renders a modal that prompts the user to log in with their X account.
+-   `Callback.tsx`: Handles the callback from X after a user has authenticated.
+-   `ContentGenerator.tsx`: Allows users to generate and post tweet threads.
+-   `GeneratedPost.tsx`: Displays the generated thread of tweets.
+-   `LegalModal.tsx`: A modal component for displaying legal documents like Terms of Service or Privacy Policy.
+-   `PrivacyPolicy.tsx`: Renders the Privacy Policy for the application.
+-   `SettingsPanel.tsx`: A component that provides a user interface for configuring API keys and other settings.
+-   `TermsOfService.tsx`: Renders the Terms of Service for the application.
+-   `icons.tsx`: A collection of SVG icon components.

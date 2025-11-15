@@ -1,4 +1,8 @@
 
+/**
+ * @file This file contains a collection of SVG icon components.
+ * @author Jules
+ */
 import React from 'react';
 
 /**
@@ -90,4 +94,16 @@ export const LogoutIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H21" />
   </svg>
+);
+
+/**
+ * Renders a gear icon as an SVG.
+ * @param {React.SVGProps<SVGSVGElement>} props - Standard SVG properties.
+ * @returns {JSX.Element} The gear icon.
+ */
+export const GearIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-1.007 1.11-.962a8.714 8.714 0 012.59 0c.55.045 1.02.42 1.11.962l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.108 1.204.165.397.505.71.93.78l.893.15c.543.09.962.56.962 1.11 0 .858-.06 1.707-.177 2.541-.046.55-.42 1.02-.962 1.11l-.893.149c-.424.07-.764.383-.93.78-.164.398-.142.854.108 1.204l.527.738c.32.447.27.96-.12 1.45l-.773.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.78.93l-.15.894c-.09.542-.56.962-1.11.962a8.714 8.714 0 01-2.59 0c-.55-.045-1.02-.42-1.11-.962l-.149-.894a1.007 1.007 0 01-.93-.78c-.164-.398-.854-.142-1.204.108l-.738.527c-.447.32-.96.27-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.962-.56-.962-1.11a8.714 8.714 0 010-2.59c.045-.55.42-1.02.962-1.11l.894-.149a1.007 1.007 0 01.93-.78c.164-.398.142-.854-.108-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.93l.15-.893z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
 );

@@ -1,12 +1,28 @@
-// components/AuthModal.tsx
+/**
+ * @file Renders a modal that prompts the user to log in with their X (formerly Twitter) account.
+ * @author Jules
+ */
 
 import React from 'react';
 import { loginWithX } from '../services/authService';
 
+/**
+ * Props for the AuthModal component.
+ * @interface AuthModalProps
+ */
 interface AuthModalProps {
+    /**
+     * A function to be called when the modal is closed.
+     * @type {() => void}
+     */
     onClose: () => void;
 }
 
+/**
+ * A modal component that prompts the user to log in with their X (formerly Twitter) account.
+ * @param {AuthModalProps} props - The component's props.
+ * @returns {JSX.Element} The rendered component.
+ */
 const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
